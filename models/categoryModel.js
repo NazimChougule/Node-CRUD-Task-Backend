@@ -5,12 +5,8 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: [true, 'A category must have a name'],
         unique: true
-    },
-    createdAt: {
-        type: String,
-        default: new Date().toISOString()
     }
-});
+}, { timestamps: true });
 
 const Category = mongoose.model('Category', categorySchema);
 

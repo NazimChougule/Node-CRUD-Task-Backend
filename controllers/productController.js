@@ -1,14 +1,21 @@
-const Category = require('./../models/categoryModel');
 const Product = require('./../models/productModel');
 
-exports.getAllCategories = async (req, res) => {
+exports.getAllProducts = async (req, res) => {
     try {
-        const categories = await Category.find();
+        const pageOptions = {
+            page: parseInt(req.query.page) || 0,
+            limit: parseInt(req.query.pageSize) || 10
+        }
+        const count = await Product.countDocuments();
+        const products = await Product.find()
+            .skip(pageOptions.page * pageOptions.limit)
+            .limit(pageOptions.limit)
+            .populate('category', 'name');
         res.status(200).json({
             status: 'success',
-            results: categories.length,
+            count,
             data: {
-                categories
+                products
             }
         });
     } catch (err) {
@@ -19,49 +26,49 @@ exports.getAllCategories = async (req, res) => {
     }
 }
 
-exports.getCategory = async (req, res) => {
+exports.getProduct = async (req, res) => {
     try {
         const id = req.params.id;
-        const category = await Category.findById(id);
+        const product = await Product.findById(id).populate('category', 'name');
         res.status(200).json({
             status: 'success',
             data: {
-                categories: category
+                products: product
             }
         });
     } catch (err) {
-        res.status(404).json({
+        res.status(491).json({
             status: 'fail',
-            message: 'Not Found'
+            message: 'Not found'
         });
     }
 }
 
-exports.createCategory = async (req, res) => {
+exports.createProduct = async (req, res) => {
     try {
-        const category = await Category.create(req.body);
+        const product = await Product.create(req.body);
         res.status(201).json({
             status: 'success',
             data: {
-                categories: category
+                product
             }
-        });
+        })
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: 'Bad Request',
+            message: 'Bad request',
             err: err
         });
     }
 }
 
-exports.updateCategory = async (req, res) => {
+exports.updateProduct = async (req, res) => {
     try {
         const id = req.params.id;
-        await Category.findByIdAndUpdate(id, req.body);
+        await Product.findByIdAndUpdate(id, req.body);
         res.status(200).json({
             status: 'success',
-            message: 'Category updated successfully'
+            message: 'Product updated successfully'
         });
     } catch (err) {
         res.status(404).json({
@@ -72,14 +79,13 @@ exports.updateCategory = async (req, res) => {
     }
 }
 
-exports.deleteCategory = async (req, res) => {
+exports.deleteProduct = async (req, res) => {
     try {
         const id = req.params.id;
-        await Category.findByIdAndDelete(id);
-        await Product.deleteMany({ category: id });
+        await Product.findByIdAndDelete(id, req.body);
         res.status(200).json({
             status: 'success',
-            message: 'Category deleted successfully'
+            message: 'Product deleted successfully'
         });
     } catch (err) {
         res.status(404).json({
